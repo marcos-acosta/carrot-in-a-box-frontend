@@ -6,7 +6,8 @@ import io from "socket.io-client"
 // import axios from "axios";
 
 let socket;
-const CONNECTION_PORT = "http://localhost:4000/"
+// const CONNECTION_PORT = "http://localhost:4000/"
+const CONNECTION_PORT = "https://carrot-in-a-box.herokuapp.com/";
 
 export default function Game(props) {
   const { value:username, bind:bindUsername } = useInput('');
