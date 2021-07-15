@@ -19,7 +19,8 @@ export default function Game(props) {
   const [eventLog, setEventLog] = useState([]);
   const [yourScore, setYourScore] = useState(0);
   const [oppScore, setOppScore] = useState(0);
-  const [gameState, setGameState] = useState(0);
+  const [gameState, setGameState] = useState(1);
+  const [gameTime, setGameTime] = useState(120);
 
   const setUsername = (e) => {
     e.preventDefault();
@@ -84,7 +85,7 @@ export default function Game(props) {
         setGameState(0);
       });
     }
-  }, [yourUsername]);
+  }, [yourUsername, props.match.params.id]);
 
   useEffect(() => {
     socket.on("log_event", (message) => {
@@ -102,6 +103,12 @@ export default function Game(props) {
     })
   }, []);
 
+  useEffect(() => {
+    socket.on("update_time", (time) => {
+      setGameTime(time);
+    })
+  }, []);
+
   const formatEventLog = (eventLog) => {
     return eventLog.map((event, i) => <li key={i}>{event}</li>)
   }
@@ -109,7 +116,6 @@ export default function Game(props) {
   const keepBox = () => {
     socket.emit("choose_box", {
       room: props.match.params.id,
-      username: yourUsername,
       keep: true
     });
   }
@@ -117,9 +123,17 @@ export default function Game(props) {
   const switchBox = () => {
     socket.emit("choose_box", {
       room: props.match.params.id,
-      username: yourUsername,
       keep: false
     });
+  }
+
+  const renderGameTime = () => {
+    return `${pad(Math.floor(gameTime / 60), 1)}:${pad(gameTime % 60, 2)}`
+  }
+
+  const pad = (num, length) => {
+    let s = "0" + num;
+    return s.substr(s.length - length);
   }
 
   const newRound = async () => {
@@ -157,7 +171,7 @@ export default function Game(props) {
             : ''
         }
         {
-          gameState === 1 ? <button onClick={newRound}>Ready</button> : ''
+          (gameStarted && gameState === 1) ? <button onClick={newRound}>Ready</button> : ''
         }
       </div>
       <br />
@@ -167,6 +181,8 @@ export default function Game(props) {
         {yourUsername ? yourUsername : '---'}: {yourScore}
         <br />
         {oppUsername ? oppUsername : '---'}: {oppScore}
+        <br />
+        {renderGameTime(gameTime)}
       </div>
     </>
   )
