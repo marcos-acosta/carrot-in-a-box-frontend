@@ -32,10 +32,6 @@ export default function Homepage(props) {
       <div className={styles.titleText}>
         🥕 in a 📦
       </div>
-      {/* <div className={styles.titleEmojis}>
-        <span className={styles.carrot}>🥕</span>
-        <span className={styles.box}>📦</span>
-      </div> */}
       <div className={styles.homepageFormContainer}>
         <button className={`btn btn-dark ${styles.createRoom}`} onClick={createNewRoom}>
           <span className={styles.scalingFont}>

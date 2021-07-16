@@ -94,7 +94,7 @@
 
 .scoreboard {
   position: absolute;
-  top: 3vw;
+  top: 8vw;
   left: 5vw;
   font-size: 1.5vw;
 }
@@ -133,4 +133,19 @@
 
 .slightlyBiggerText {
   font-size: 1.5vw;
+}
+
+.homeDiv {
+  position: absolute;
+  top: 3vw;
+  left: 5vw;
+  font-size: 1.25vw;
+}
+
+a.blackText {
+  color: black;
+}
+
+a.blackText:hover {
+  color: black;
 }

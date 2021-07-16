@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import styles from './Game.module.css';
 import { useInput } from "../../hooks/useInput";
 import io from "socket.io-client"
@@ -248,6 +249,13 @@ export default function Game(props) {
       </div>
       {/* <button onClick={fire}>fire</button> */}
       <ReactCanvasConfetti refConfetti={getInstance} style={canvasStyles}/>
+      <div className={styles.homeDiv}>
+        <Link to="/">
+          <button className="btn btn-light">
+            🥕📦 home
+          </button>
+        </Link>
+      </div>
     </>
   )
 }
