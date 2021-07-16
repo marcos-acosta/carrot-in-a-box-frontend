@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
-// import styles from './Game.module.css';
-// import { useHistory } from 'react-router-dom';
+import styles from './Game.module.css';
 import { useInput } from "../../hooks/useInput";
 import io from "socket.io-client"
-// import axios from "axios";
 
 let socket;
 // const CONNECTION_PORT = "http://localhost:4000/"
@@ -16,11 +14,11 @@ export default function Game(props) {
   const [gameStarted, setGameStarted] = useState(false);
   const [isPeeker, setIsPeeker] = useState(false);
   const [hasCarrot, setHasCarrot] = useState(false);
-  const [eventLog, setEventLog] = useState([]);
   const [yourScore, setYourScore] = useState(0);
   const [oppScore, setOppScore] = useState(0);
   const [gameState, setGameState] = useState(1);
   const [gameTime, setGameTime] = useState(120);
+  const [whatHappened, setWhatHappened] = useState({});
 
   const setUsername = (e) => {
     e.preventDefault();
@@ -37,34 +35,17 @@ export default function Game(props) {
 
   useEffect(() => {
     if (yourUsername) {
-      socket.on("joined_room", (_username) => {
-        let newEvents = [];
-        if (_username === yourUsername) {
-          newEvents.push(`You (${yourUsername}) joined the game!`);
-        } else {
-          newEvents.push(`${_username} joined the game!`);
-        }
-        setEventLog(eventLog => [...eventLog, ...newEvents]);
-      });
-    }
-  }, [yourUsername]);
-
-  useEffect(() => {
-    if (yourUsername) {
       socket.on("game_ready", (data) => {
         setGameStarted(true);
         for (let i = 0; i < data.length; i++) {
           let client = data[i];
           if (client["username"] === yourUsername) {
-            setIsPeeker(client["isPeeker"]);
-            setHasCarrot(client["hasCarrot"]);
             setYourScore(client["score"]);
           } else {
             setOppUsername(client["username"]);
             setOppScore(client["score"]);
           }
         }
-        setEventLog(eventLog => [...eventLog, "Begin!"]);
       });
     }
   }, [yourUsername]);
@@ -88,15 +69,7 @@ export default function Game(props) {
   }, [yourUsername, props.match.params.id]);
 
   useEffect(() => {
-    socket.on("log_event", (message) => {
-      setEventLog(eventLog => [...eventLog, message]);
-    });
-  }, [])
-
-  useEffect(() => {
     socket.on("game_update", (data) => {
-      let winOrLoseMessage = data["won"] ? "Well done, you got the carrot!" : "You blew it. You don't have the carrot."
-      setEventLog(eventLog => [...eventLog, winOrLoseMessage]);
       setYourScore(data["scores"][0]);
       setOppScore(data["scores"][1]);
       setGameState(1);
@@ -109,8 +82,24 @@ export default function Game(props) {
     })
   }, []);
 
-  const formatEventLog = (eventLog) => {
-    return eventLog.map((event, i) => <li key={i}>{event}</li>)
+  useEffect(() => {
+    socket.on("what_happened", (data) => {
+      setWhatHappened(data);
+    })
+  }, []);
+
+  const renderWhatHappened = (data) => {
+    if (Object.keys(data).length !== 0) {
+      return <>
+        {data["actionPlayer"]}&nbsp;<span className={styles.grayText}>
+        {data["kept"] ? <>kept their box</> : <>swapped boxes</>} and&nbsp;
+        {data["won"] ? 
+          data["kept"] ? <>the carrot!</> : <>wound up with the carrot!</> : 
+          data["kept"] ? <>left you with the carrot!</> : <>fumbled away the carrot!</>}
+        </span></>;
+    } else {
+      return '';
+    }
   }
 
   const keepBox = () => {
@@ -128,7 +117,11 @@ export default function Game(props) {
   }
 
   const renderGameTime = () => {
-    return `${pad(Math.floor(gameTime / 60), 1)}:${pad(gameTime % 60, 2)}`
+    let time = `${pad(Math.floor(gameTime / 60), 1)}:${pad(gameTime % 60, 2)}`
+    if (gameTime <= 20) {
+      time = <div className={styles.redText}>{time}</div>
+    }
+    return time
   }
 
   const pad = (num, length) => {
@@ -143,46 +136,74 @@ export default function Game(props) {
 
   return (
     <>
-      <form onSubmit={setUsername}>
-        <input 
-          type="text"
-          required
-          placeholder="Username"
-          {...bindUsername}
-          />
-        <button type="submit">Yep, that's me</button>
-      </form>
-      <div id="names">
-        Your name: {yourUsername ? yourUsername : '---'}
+      {!yourUsername ? 
+        <>
+          <div className={styles.dialogBox}>
+            <form onSubmit={setUsername}>
+              <div className={styles.dialogTitle}>
+                Welcome to <b><i>Carrot in a Box</i></b>. What's your name?
+              </div>
+              <div>
+                <input 
+                  type="text"
+                  required
+                  placeholder="Username"
+                  className={`form-control w-50 ${styles.usernameInput}`}
+                  {...bindUsername}
+                  />
+                <button type="submit" className={`btn btn-dark ${styles.usernameButton}`}>Yep, that's me</button>
+              </div>
+            </form>
+          </div>
+          <div className={styles.smokeScreen}></div>
+        </>
+      : ''}
+      <div className={styles.timer}>
+        {renderGameTime(gameTime)}
+      </div>
+      <div className={`${styles.box} ${styles.yours}`}>📦</div>
+      <div className={`${styles.box} ${styles.opponent}`}>📦</div>
+      <div className={`${styles.username} ${styles.yourUsername}`}>
+        {yourUsername ? <>{yourUsername} <span className={styles.grayText}>(you)</span></> : '---'}
+      </div>
+      <div className={`${styles.username} ${styles.opponentUsername}`}>
+        {oppUsername ? oppUsername : '---'}
+      </div>
+      {
+        (gameState === 0 && isPeeker) ?
+          hasCarrot ?
+            <div className={`${styles.carrot} ${styles.yours}`}>🥕</div>
+            : <div className={`${styles.carrot} ${styles.opponent}`}>🥕</div>
+        : ''
+      }
+      <div className={styles.scoreboard}>
+        {yourUsername ? <u>{yourUsername}</u>: '---'}: <b>{yourScore}</b>
         <br />
-        Opponent's name: {oppUsername ? oppUsername : '---'}
+        {oppUsername ? oppUsername : '---'}: <b>{oppScore}</b>
       </div>
-      <div id="log">
-        <ul>
-          {formatEventLog(eventLog)}
-        </ul>
-      </div>
-      <div id="essentialInfo">
+      <div className={styles.centerPanel}>
         {
           (gameStarted && gameState === 0) ? 
             isPeeker ? 
               <div>You {hasCarrot ? '' : 'do not'} have the carrot.</div> :
-              <div><button id="keep" onClick={keepBox}>Keep boxes</button><button id="swap" onClick={switchBox}>Swap boxes</button></div>
+              <div>
+                <button id="keep" onClick={keepBox} className={`btn btn-dark ${styles.keepButton}`}>Keep boxes</button>
+                <button id="swap" onClick={switchBox} className={`btn btn-light`}>Swap boxes</button>
+              </div>
             : ''
         }
         {
-          (gameStarted && gameState === 1) ? <button onClick={newRound}>Ready</button> : ''
+          (gameStarted && gameState > 0) ? <div className={styles.whatHappened}>{renderWhatHappened(whatHappened)}</div> : ""
         }
-      </div>
-      <br />
-      <div id="gameStats">
-        Scoreboard
-        <br />
-        {yourUsername ? yourUsername : '---'}: {yourScore}
-        <br />
-        {oppUsername ? oppUsername : '---'}: {oppScore}
-        <br />
-        {renderGameTime(gameTime)}
+        {
+          (gameStarted && gameState === 1) ? <button onClick={newRound} className={`btn btn-light`}>Ready</button> : ''
+        }
+        {
+          (gameStarted && gameState === 2) ? 
+            <>
+              <span className={styles.grayText}>Waiting on </span>{oppUsername}<span className={styles.grayText}>...</span>
+            </> : ''
+        }
       </div>
     </>
   )

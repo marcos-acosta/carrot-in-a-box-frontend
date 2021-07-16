@@ -1,0 +1,56 @@
+.titleText {
+  position: absolute;
+  top: 18vw;
+  width: 40vw;
+  left: 30vw;
+  font-size: 6vw;
+  text-align: center;
+}
+
+.titleEmojis {
+  position: absolute;
+  top: 12vw;
+  width: 40vw;
+  left: 30vw;
+  font-size: 6vw;
+}
+
+.carrot {
+  margin-left: 7vw;
+}
+
+.box {
+  float: right;
+  margin-right: 3.5vw;
+}
+
+.homepageFormContainer {
+  position: absolute;
+  width: 20vw;
+  left: 40vw;
+  top: 30vw;
+}
+
+.createRoom {
+  width: 100%;
+  height: 3vw;
+}
+
+.joinWithCode {
+  margin-top: 1vw;
+}
+
+.roomCode {
+  float: left;
+  height: 3vw;
+}
+
+.joinRoom {
+  float: right;
+  width: 45%;
+  height: 3vw;
+}
+
+.scalingFont {
+  font-size: 1vw;
+}

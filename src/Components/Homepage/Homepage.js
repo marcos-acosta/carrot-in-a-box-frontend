@@ -1,4 +1,4 @@
-// import styles from './Homepage.module.css';
+import styles from './Homepage.module.css';
 import { useHistory } from 'react-router-dom';
 import { useInput } from "../../hooks/useInput";
 
@@ -28,14 +28,35 @@ export default function Homepage(props) {
   }
 
   return (
-    <div>
-      <button onClick={createNewRoom}>Create new room</button>
-      <input 
-        type="text"
-        required
-        placeholder="Room code"
-        {...bindRoomCode}/>
-      <button onClick={joinExistingRoom}>Join existing room</button>
-    </div>
+    <>
+      <div className={styles.titleText}>
+        🥕 in a 📦
+      </div>
+      {/* <div className={styles.titleEmojis}>
+        <span className={styles.carrot}>🥕</span>
+        <span className={styles.box}>📦</span>
+      </div> */}
+      <div className={styles.homepageFormContainer}>
+        <button className={`btn btn-dark ${styles.createRoom}`} onClick={createNewRoom}>
+          <span className={styles.scalingFont}>
+            Create a new room
+          </span>
+        </button>
+        <div className={styles.joinWithCode}>
+          <input 
+            type="text"
+            required
+            placeholder="Room code"
+            className={`form-control w-50 ${styles.roomCode}`}
+            {...bindRoomCode}>
+          </input>
+          <button className={`btn btn-secondary ${styles.joinRoom}`} onClick={joinExistingRoom}>
+            <span className={styles.scalingFont}>
+              Join a room
+            </span>
+          </button>
+        </div>
+      </div>
+    </>
   )
 }
