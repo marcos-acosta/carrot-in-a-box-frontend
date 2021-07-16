@@ -95,7 +95,7 @@ export default function Game(props) {
         {data["kept"] ? <>kept their box</> : <>swapped boxes</>} and&nbsp;
         {data["won"] ? 
           data["kept"] ? <>the carrot!</> : <>wound up with the carrot!</> : 
-          data["kept"] ? <>left you with the carrot!</> : <>fumbled away the carrot!</>}
+          data["kept"] ? <>was left carrotless!</> : <>fumbled away the carrot!</>}
         </span></>;
     } else {
       return '';
