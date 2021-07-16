@@ -8,17 +8,17 @@ export default function Homepage(props) {
   const { value:roomCode, bind:bindRoomCode } = useInput('');
 
   const createNewRoom = () => {
-    let generatedRoomCode = randomRoomCode(10);
+    let generatedRoomCode = randomRoomCode(6);
     history.push(`/${generatedRoomCode}`);
   }
   
   const joinExistingRoom = () => {
     // TODO: check if room exists
-    history.push(`/${roomCode}`);
+    history.push(`/${roomCode.toLowerCase()}`);
   }
 
   const randomRoomCode = (length) => { // TODO: check that room code doesn't exist
-    const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const characters = 'abcdefghijklmnopqrstuvwxyz';
     const charactersLen = characters.length;
     let code = ''
     for (let i = 0; i < length; i++) {

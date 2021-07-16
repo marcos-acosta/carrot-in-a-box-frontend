@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import styles from './Game.module.css';
 import { useInput } from "../../hooks/useInput";
 import io from "socket.io-client"
+import ReactCanvasConfetti from 'react-canvas-confetti';
 
 let socket;
-// const CONNECTION_PORT = "http://localhost:4000/"
-const CONNECTION_PORT = "https://carrot-in-a-box.herokuapp.com/";
+const CONNECTION_PORT = "http://localhost:4000/"
+// const CONNECTION_PORT = "https://carrot-in-a-box.herokuapp.com/";
 
 export default function Game(props) {
   const { value:username, bind:bindUsername } = useInput('');
@@ -19,6 +20,21 @@ export default function Game(props) {
   const [gameState, setGameState] = useState(1);
   const [gameTime, setGameTime] = useState(120);
   const [whatHappened, setWhatHappened] = useState({});
+  const [animationInstance, setAnimationInstance] = useState(null);
+
+  const canvasStyles = {
+    position: 'fixed',
+    pointerEvents: 'none',
+    width: '100%',
+    height: '100%',
+    top: 0,
+    left: 0
+  }
+
+  const getInstance = (instance) => {
+    let fireFunction = (options) => (options) => {instance({...options})}
+    setAnimationInstance(fireFunction);
+  };
 
   const setUsername = (e) => {
     e.preventDefault();
@@ -69,12 +85,30 @@ export default function Game(props) {
   }, [yourUsername, props.match.params.id]);
 
   useEffect(() => {
-    socket.on("game_update", (data) => {
-      setYourScore(data["scores"][0]);
-      setOppScore(data["scores"][1]);
-      setGameState(1);
-    })
-  }, []);
+    const fire = () => {
+      makeShot(0.3, {
+        spread: 45,
+        startVelocity: 50,
+      });
+    }
+    const makeShot = (particleRatio, opts) => {
+      animationInstance && animationInstance({
+        ...opts,
+        origin: { x: 0.5, y: 0.75 },
+        particleCount: Math.floor(200 * particleRatio)
+      });
+    }
+    if (animationInstance) {
+      socket.on("game_update", (data) => {
+        setYourScore(data["scores"][0]);
+        setOppScore(data["scores"][1]);
+        setGameState(1);
+        if (data["won"]) {
+          fire()
+        }
+      })
+    }
+  }, [animationInstance]);
 
   useEffect(() => {
     socket.on("update_time", (time) => {
@@ -205,6 +239,15 @@ export default function Game(props) {
             </> : ''
         }
       </div>
+      <div className={styles.roomCode}>
+        <span className={styles.grayText}>room code</span>
+        <br />
+        <span className={styles.slightlyBiggerText}>
+          <b>{props.match.params.id}</b>
+        </span>
+      </div>
+      {/* <button onClick={fire}>fire</button> */}
+      <ReactCanvasConfetti refConfetti={getInstance} style={canvasStyles}/>
     </>
   )
 }
