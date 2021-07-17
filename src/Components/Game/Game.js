@@ -41,11 +41,23 @@ export default function Game(props) {
 
   const setUsername = (e) => {
     e.preventDefault();
-    setYourUsername(username);
-    socket.emit("join_room", {
-      room: props.match.params.id,
-      username: username
-    });
+    // axios.post('http://localhost:4000/openroom/', {room_id: props.match.params.id})
+    axios.post("https://carrot-in-a-box.herokuapp.com/openroom/", {room_id: props.match.params.id})
+      .then(res => {
+        if (res.data.clientCount >= 2) {
+          setPlayerType("spectator");
+          socket.emit("join_room", {
+            room: props.match.params.id,
+            username: 'spectator'
+          });
+        } else {
+          setYourUsername(username);
+          socket.emit("join_room", {
+            room: props.match.params.id,
+            username: username
+          });
+        }
+      });
   };
 
   useEffect(() => {
