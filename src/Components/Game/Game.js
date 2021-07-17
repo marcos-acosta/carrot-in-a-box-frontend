@@ -55,7 +55,7 @@ export default function Game(props) {
 
   useEffect(() => {
     // axios.post('http://localhost:4000/openroom/', {room_id: props.match.params.id})
-    await axios.post("https://carrot-in-a-box.herokuapp.com/openroom/", {room_id: props.match.params.id})
+    axios.post("https://carrot-in-a-box.herokuapp.com/openroom/", {room_id: props.match.params.id})
       .then(res => {
         if (res.data.clientCount >= 2) {
           setPlayerType("spectator");
