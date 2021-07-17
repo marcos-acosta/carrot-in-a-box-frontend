@@ -2,6 +2,7 @@ import styles from './Homepage.module.css';
 import { useHistory } from 'react-router-dom';
 import { useInput } from "../../hooks/useInput";
 import { useState } from 'react';
+import axios from "axios";
 
 export default function Homepage(props) {
   const history = useHistory();
@@ -9,8 +10,16 @@ export default function Homepage(props) {
   const { value:roomCode, bind:bindRoomCode } = useInput('');
   const [error, setError] = useState('');
 
-  const createNewRoom = () => {
-    let generatedRoomCode = randomRoomCode(6);
+  const createNewRoom = async () => {
+    let taken = true;
+    let generatedRoomCode = ''
+    while (taken) {
+      generatedRoomCode = randomRoomCode(6);
+      // let res = await axios.post("http://localhost:4000/openroom/", {room_id: generatedRoomCode});
+      let res = await axios.post("https://carrot-in-a-box.herokuapp.com/openroom/", {room_id: generatedRoomCode});
+      console.log(res);
+      taken = res.data.exists;
+    }
     history.push(`/${generatedRoomCode}`);
   }
   
