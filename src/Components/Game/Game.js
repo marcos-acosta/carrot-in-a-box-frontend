@@ -260,8 +260,8 @@ export default function Game(props) {
                 : <div>You {hasCarrot ? '' : 'do not'} have the carrot.</div>
               : (playerType === 'player')
                 ? <div>
-                  <button id="keep" onClick={keepBox} className={`btn btn-dark ${styles.keepButton}`}>Keep boxes</button>
-                  <button id="swap" onClick={switchBox} className={`btn btn-warning`}>Swap boxes</button>
+                  <button id="keep" onClick={keepBox} className={`btn btn-light ${styles.keepButton}`}>Keep boxes</button>
+                  <button id="swap" onClick={switchBox} className={`btn btn-dark`}>Swap boxes</button>
                 </div>
                 : ''
             : ''
