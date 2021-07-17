@@ -131,6 +131,20 @@
   width: 10vw;
 }
 
+.playerOrSpectator {
+  position: absolute;
+  top: 10vw;
+  right: 5vw;
+  background-color: white;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  border-radius: 1vw;
+  padding: 1vw;
+  text-align: center;
+  width: 10vw;
+  background-color: orange;
+  color: white;
+}
+
 .slightlyBiggerText {
   font-size: 1.5vw;
 }

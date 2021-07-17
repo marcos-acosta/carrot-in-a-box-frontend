@@ -54,3 +54,13 @@
 .scalingFont {
   font-size: 1vw;
 }
+
+.errorText {
+  position: absolute;
+  width: 50vw;
+  left: 25vw;
+  top: 38vw;
+  color: red;
+  font-size: 0.8vw;
+  text-align: center;
+}

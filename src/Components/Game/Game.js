@@ -4,6 +4,7 @@ import styles from './Game.module.css';
 import { useInput } from "../../hooks/useInput";
 import io from "socket.io-client"
 import ReactCanvasConfetti from 'react-canvas-confetti';
+import axios from "axios";
 
 let socket;
 // const CONNECTION_PORT = "http://localhost:4000/"
@@ -22,6 +23,7 @@ export default function Game(props) {
   const [gameTime, setGameTime] = useState(120);
   const [whatHappened, setWhatHappened] = useState({});
   const [animationInstance, setAnimationInstance] = useState(null);
+  const [playerType, setPlayerType] = useState("");
 
   const canvasStyles = {
     position: 'fixed',
@@ -48,24 +50,48 @@ export default function Game(props) {
 
   useEffect(() => {
     socket = io(CONNECTION_PORT);
+    return () => {socket.disconnect()};
   }, []);
 
   useEffect(() => {
-    if (yourUsername) {
+    // axios.post('http://localhost:4000/openroom/', {room_id: props.match.params.id})
+    await axios.post("https://carrot-in-a-box.herokuapp.com/openroom/", {room_id: props.match.params.id})
+      .then(res => {
+        if (res.data.clientCount >= 2) {
+          setPlayerType("spectator");
+          socket.emit("join_room", {
+            room: props.match.params.id,
+            username: 'spectator'
+          });
+        } else {
+          setPlayerType("player");
+        }
+      });
+  }, [props.match.params.id]);
+
+  useEffect(() => {
+    if (playerType && ((yourUsername && playerType === 'player') || (!yourUsername && playerType === 'spectator'))) {
       socket.on("game_ready", (data) => {
         setGameStarted(true);
-        for (let i = 0; i < data.length; i++) {
-          let client = data[i];
-          if (client["username"] === yourUsername) {
-            setYourScore(client["score"]);
-          } else {
-            setOppUsername(client["username"]);
-            setOppScore(client["score"]);
+        if (playerType === 'spectator') {
+          setYourScore(data[0]["score"]);
+          setYourUsername(data[0]["username"]);
+          setOppScore(data[1]["score"]);
+          setOppUsername(data[1]["username"]);
+        } else {
+          for (let i = 0; i < data.length; i++) {
+            let client = data[i];
+            if (client["username"] === yourUsername) {
+              setYourScore(client["score"]);
+            } else {
+              setOppUsername(client["username"]);
+              setOppScore(client["score"]);
+            }
           }
         }
       });
     }
-  }, [yourUsername]);
+  }, [yourUsername, playerType]);
 
   useEffect(() => {
     if (yourUsername) {
@@ -171,7 +197,7 @@ export default function Game(props) {
 
   return (
     <>
-      {!yourUsername ? 
+      {playerType && playerType === 'player' && !yourUsername ? 
         <>
           <div className={styles.dialogBox}>
             <form onSubmit={setUsername}>
@@ -199,39 +225,52 @@ export default function Game(props) {
       <div className={`${styles.box} ${styles.yours}`}>📦</div>
       <div className={`${styles.box} ${styles.opponent}`}>📦</div>
       <div className={`${styles.username} ${styles.yourUsername}`}>
-        {yourUsername ? <>{yourUsername} <span className={styles.grayText}>(you)</span></> : '---'}
+        {yourUsername 
+          ? <>
+            {yourUsername}{playerType === 'player' ? <span className={styles.grayText}> (you)</span> : ''}
+          </> 
+          : '---'}
       </div>
       <div className={`${styles.username} ${styles.opponentUsername}`}>
         {oppUsername ? oppUsername : '---'}
       </div>
       {
-        (gameState === 0 && isPeeker) ?
+        (gameState === 0 && (isPeeker || playerType === 'spectator')) ?
           hasCarrot ?
             <div className={`${styles.carrot} ${styles.yours}`}>🥕</div>
             : <div className={`${styles.carrot} ${styles.opponent}`}>🥕</div>
         : ''
       }
       <div className={styles.scoreboard}>
-        {yourUsername ? <u>{yourUsername}</u>: '---'}: <b>{yourScore}</b>
+        {yourUsername
+          ? (playerType === 'player' ? <u>{yourUsername}</u> : yourUsername)
+          : '---'}: <b>{yourScore}</b>
         <br />
         {oppUsername ? oppUsername : '---'}: <b>{oppScore}</b>
       </div>
+      { (playerType === 'spectator') ? <div className={styles.playerOrSpectator}>spectator</div> : '' }
       <div className={styles.centerPanel}>
         {
-          (gameStarted && gameState === 0) ? 
-            isPeeker ? 
-              <div>You {hasCarrot ? '' : 'do not'} have the carrot.</div> :
-              <div>
-                <button id="keep" onClick={keepBox} className={`btn btn-dark ${styles.keepButton}`}>Keep boxes</button>
-                <button id="swap" onClick={switchBox} className={`btn btn-light`}>Swap boxes</button>
-              </div>
+          (gameStarted && gameState === 0)
+            ? (isPeeker || playerType === 'spectator')
+              ? playerType === 'spectator'
+                ? hasCarrot
+                  ? <>{yourUsername} <span className={styles.grayText}>has the carrot</span></>
+                  : <>{oppUsername} <span className={styles.grayText}>has the carrot</span></>
+                : <div>You {hasCarrot ? '' : 'do not'} have the carrot.</div>
+              : (playerType === 'player')
+                ? <div>
+                  <button id="keep" onClick={keepBox} className={`btn btn-dark ${styles.keepButton}`}>Keep boxes</button>
+                  <button id="swap" onClick={switchBox} className={`btn btn-warning`}>Swap boxes</button>
+                </div>
+                : ''
             : ''
         }
         {
           (gameStarted && gameState > 0) ? <div className={styles.whatHappened}>{renderWhatHappened(whatHappened)}</div> : ""
         }
         {
-          (gameStarted && gameState === 1) ? <button onClick={newRound} className={`btn btn-light`}>Ready</button> : ''
+          (gameStarted && gameState === 1 && playerType === 'player') ? <button onClick={newRound} className={`btn btn-warning`}>Ready!</button> : ''
         }
         {
           (gameStarted && gameState === 2) ? 
